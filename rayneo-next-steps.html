@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>RayNeo — Next Session Run Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;700&family=IBM+Plex+Mono:wght@400;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --panel:#DCDFD6; --panel-deep:#C6CABE; --panel-edge:#A9AEA1;
+    --ink:#1A1D19; --ink-soft:#565C52;
+    --lcd:#16241C; --lcd-text:#7FE8A8; --lcd-dim:#3E7A57;
+    --amber:#E8A33D; --red:#D14432; --green:#3FBF6A;
+    --display:"Barlow Condensed",Impact,sans-serif;
+    --body:"Inter",system-ui,sans-serif;
+    --mono:"IBM Plex Mono",ui-monospace,monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{background:var(--panel-edge);font-family:var(--body);color:var(--ink);
+    -webkit-font-smoothing:antialiased;padding:14px;
+    padding-bottom:calc(28px + env(safe-area-inset-bottom))}
+  .unit{max-width:660px;margin:0 auto;background:var(--panel);
+    border:1px solid var(--panel-edge);border-radius:4px;
+    box-shadow:0 1px 0 #EDEFE9 inset,0 6px 20px rgba(0,0,0,.18);overflow:hidden}
+  header{padding:16px;border-bottom:1px solid var(--panel-edge);
+    background:linear-gradient(180deg,#E4E7DE,#D5D8CF)}
+  .marque{font-family:var(--display);font-weight:700;font-size:11px;
+    letter-spacing:.22em;text-transform:uppercase;color:var(--ink-soft);margin:0 0 4px}
+  h1{font-family:var(--display);font-weight:700;font-size:29px;line-height:1;
+    text-transform:uppercase;margin:0}
+  .sub{font-size:12.5px;line-height:1.55;color:var(--ink-soft);margin:8px 0 0;max-width:48ch}
+  main{padding:16px}
+  section{margin:0 0 22px;padding:0 0 22px;border-bottom:1px solid var(--panel-edge)}
+  section:last-child{border-bottom:0;margin-bottom:0;padding-bottom:0}
+  .hd{display:flex;align-items:baseline;gap:9px;margin:0 0 10px}
+  .no{font-family:var(--mono);font-weight:600;font-size:11px;color:var(--ink-soft);
+    border:1px solid var(--panel-edge);padding:2px 5px;border-radius:2px;background:#E7E9E2}
+  h2{font-family:var(--display);font-weight:700;font-size:19px;
+    text-transform:uppercase;letter-spacing:.05em;margin:0}
+  h3{font-family:var(--display);font-weight:700;font-size:13.5px;letter-spacing:.08em;
+    text-transform:uppercase;margin:16px 0 7px;color:var(--ink-soft)}
+  p{font-size:13.5px;line-height:1.6;margin:0 0 10px}
+  ul,ol{margin:0 0 10px;padding-left:19px;font-size:13.5px;line-height:1.6}
+  li{margin-bottom:6px}
+  code{font-family:var(--mono);font-size:12px;background:#E7E9E2;
+    padding:1px 4px;border-radius:2px;border:1px solid var(--panel-edge)}
+  pre{background:var(--lcd);color:var(--lcd-text);border:1px solid #0B120E;
+    border-radius:3px;box-shadow:0 2px 5px rgba(0,0,0,.3) inset;
+    padding:11px;margin:0 0 10px;font-family:var(--mono);font-size:11.5px;
+    line-height:1.65;overflow-x:auto;-webkit-overflow-scrolling:touch}
+  pre .c{color:var(--lcd-dim)}
+  .flag{border-left:3px solid var(--amber);background:#E5E3D8;
+    padding:9px 11px;margin:0 0 10px;font-size:12.5px;line-height:1.55}
+  .flag.go{border-left-color:var(--green)}
+  .flag.stop{border-left-color:var(--red)}
+  .flag b{font-weight:600}
+  table{width:100%;border-collapse:collapse;font-size:12.5px;margin:0 0 10px}
+  th{font-family:var(--display);font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+    text-align:left;padding:6px 7px;border-bottom:1.5px solid var(--ink);color:var(--ink-soft)}
+  td{padding:6px 7px;border-bottom:1px solid var(--panel-edge);font-size:12.5px}
+  td.m{font-family:var(--mono);font-size:11.5px}
+  footer{padding:14px 16px;border-top:1px solid var(--panel-edge);
+    background:var(--panel-deep);font-size:11.5px;line-height:1.6;color:var(--ink-soft)}
+</style>
+</head>
+<body>
+<div class="unit">
+
+<header>
+  <p class="marque">Run sheet &middot; pick up here</p>
+  <h1>Next Session</h1>
+  <p class="sub">Everything's already installed. Phone charged, glasses plugged in and showing a picture, then work down this list.</p>
+</header>
+
+<main>
+
+<section>
+  <div class="hd"><span class="no">00</span><h2>Warm up</h2></div>
+  <p>Three commands, one at a time. Each has a pass condition &mdash; don't move on until it's met.</p>
+<pre>termux-usb -l</pre>
+  <p>Should print a path. <b>Note it</b> &mdash; after a replug it may be <code>001/003</code> rather than <code>001/002</code>, and every command below uses it.</p>
+<pre>termux-usb -r -e "python -V" /dev/bus/usb/001/002</pre>
+  <p>Should print a version in about a second. Accept the Android USB prompt.</p>
+<pre>ls</pre>
+  <p>Should list <code>rayneo_axes.py</code> and the rest.</p>
+  <div class="flag stop"><b>If <code>termux-usb -l</code> hangs</b>, that's the Termux:API service, not our scripts. Exit Termux from the notification shade and reopen. If it still hangs, reboot the phone.</div>
+</section>
+
+<section>
+  <div class="hd"><span class="no">01</span><h2>The main job</h2></div>
+  <p>Find the missing <b>8.83 m/s&sup2;</b>. On the left side, ch0&ndash;ch2 total only 4.28 while the glasses are provably still. Gravity has to be somewhere, and no float channel holds it.</p>
+  <p>Most likely explanation: the third axis isn't a float. If it's a scaled 16-bit integer, the float decoder would render it as the exact <code>0.00</code> we keep seeing. <code>rayneo_raw.py</code> reads every offset as float32, int16 and int32 at once so the shape doesn't matter.</p>
+
+  <h3>Get it across</h3>
+<pre>cp ~/storage/downloads/rayneo*raw.py ~/rayneo_raw.py</pre>
+
+  <h3>Run A &mdash; left side</h3>
+  <p>Glasses on their <b>left side</b>, hands off, then:</p>
+<pre>termux-usb -r -e "python -u rayneo_raw.py --hunt 8.83" \
+  /dev/bus/usb/001/002</pre>
+  <p>Prints three full 64-byte frames, which bytes changed, and any field anywhere in the frame reading near &plusmn;8.83.</p>
+
+  <h3>Run B &mdash; flat, for comparison</h3>
+  <p>Glasses <b>flat lenses-down</b>, hands off:</p>
+<pre>termux-usb -r -e "python -u rayneo_raw.py --hunt 8.83" \
+  /dev/bus/usb/001/002</pre>
+
+  <div class="flag go"><b>What proves it.</b> A field that reads ~8.83 on its side and ~0 when flat is the third axis. One that reads 8.83 in both is a coincidence &mdash; ignore it.</div>
+  <p>Screenshot both. The hex blocks matter as much as the summary.</p>
+</section>
+
+<section>
+  <div class="hd"><span class="no">02</span><h2>If run A finds nothing</h2></div>
+  <p>Widen the net rather than repeating:</p>
+<pre>termux-usb -r -e "python -u rayneo_raw.py --hunt 8.83 --tol 2.0" \
+  /dev/bus/usb/001/002</pre>
+  <p>Also worth trying, in case the scaling isn't 1:1 &mdash; hunt the raw g value instead of m/s&sup2;:</p>
+<pre>termux-usb -r -e "python -u rayneo_raw.py --hunt 0.9 --tol 0.3" \
+  /dev/bus/usb/001/002</pre>
+  <p>0.9 g is the same tilt expressed in g rather than m/s&sup2;. Some devices report one, some the other.</p>
+  <div class="flag"><b>Still nothing?</b> Then ch0/ch1 are probably a computed projection rather than raw axes, and the third component may genuinely not be transmitted. Send me the <b>bytes that changed</b> list from both runs &mdash; that narrows it faster than more hunting.</div>
+</section>
+
+<section>
+  <div class="hd"><span class="no">03</span><h2>Then: confirm the gyro</h2></div>
+  <p>Quick and worth having nailed down. Two runs with the existing script:</p>
+<pre>termux-usb -r -e "python -u rayneo_axes.py --n 14 --quiet" \
+  /dev/bus/usb/001/002</pre>
+  <table>
+    <tr><th>run</th><th>what to do</th><th>expected</th></tr>
+    <tr><td class="m">1</td><td>Dead still on the table</td><td>ch3, ch4 near 0.00</td></tr>
+    <tr><td class="m">2</td><td>Rotate steadily and continuously through the whole 6s</td><td>ch3 or ch4 clearly non-zero</td></tr>
+  </table>
+  <p>If run 2 shows movement on those channels and run 1 doesn't, that's the gyro confirmed and yaw is available.</p>
+</section>
+
+<section>
+  <div class="hd"><span class="no">04</span><h2>Then: is ch6/ch7 a compass?</h2></div>
+  <p>Same command. Keep the glasses <b>flat and level</b> throughout &mdash; only the heading changes.</p>
+  <ol>
+    <li>Flat, pointing one way. Run. Note ch6, ch7.</li>
+    <li>Rotate 90&deg; on the spot, still flat. Run. Note them again.</li>
+    <li>Another 90&deg;. Run.</li>
+  </ol>
+  <p>If ch6/ch7 trace a circle while ch0/ch1 barely move, it's a magnetometer and you have absolute heading &mdash; which beats a gyro, since it never drifts.</p>
+</section>
+
+<section>
+  <div class="hd"><span class="no">05</span><h2>Rules that save time</h2></div>
+  <ul>
+    <li><b>Type commands, don't paste.</b> Pasting injected <code>[200~</code> into commands twice and sent a duplicate line into a running script's stdin.</li>
+    <li><b>Hands completely off during sampling.</b> If it says magnitude varied, the run is worthless &mdash; redo before reading anything into it.</li>
+    <li><b>Check the <code>|v|</code> column first.</b> Near 9.8 means trustworthy. Anything else means you moved them.</li>
+    <li><b>Phone on charge.</b> The glasses draw from it, and low battery gets Termux:API killed.</li>
+    <li><b>One variable at a time.</b> Change the position or the flags, never both.</li>
+  </ul>
+</section>
+
+<section>
+  <div class="hd"><span class="no">06</span><h2>Known good facts</h2></div>
+  <p>Don't re-derive these.</p>
+  <table>
+    <tr><td>Enable command</td><td class="m">00 01 via SET_REPORT</td></tr>
+    <tr><td>Control transfer</td><td class="m">0x21, 0x09, wValue 0x0301, wIndex 0</td></tr>
+    <tr><td>Replies on</td><td class="m">interrupt IN 0x81, 64 bytes</td></tr>
+    <tr><td>Sensor frame</td><td class="m">starts 99 65 40 00</td></tr>
+    <tr><td>Status frame</td><td class="m">starts 99 C8 40 00</td></tr>
+    <tr><td>Floats</td><td class="m">little-endian, from offset 8</td></tr>
+    <tr><td>Accelerometer</td><td class="m">ch0, ch1 &mdash; m/s&sup2;, sign-verified</td></tr>
+    <tr><td>Temperature</td><td class="m">ch5 &mdash; &deg;C</td></tr>
+    <tr><td>Nothing is pushed</td><td class="m">poll or you get silence</td></tr>
+    <tr><td>Poll rate</td><td class="m">118 Hz, no sleep in the loop</td></tr>
+    <tr><td>Head axes</td><td class="m">pitch=X, yaw=Y+Z, roll=Y&minus;Z</td></tr>
+  </table>
+</section>
+
+</main>
+
+<footer>
+  Reminder on scope: all of this leads to a head-tracked floating screen, not head-look inside a game. No Android title or emulator accepts an orientation input stream. That part is Windows-only, and first-person Mario Kart is out on every platform.
+</footer>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>RayNeo Air 4 Pro — Head Tracking on Android | Will Flood</title>
+<meta name="author" content="Will Flood">
+<meta name="description" content="Reverse engineering the RayNeo Air 4 Pro IMU and building root-free head tracking on Android. Project record by Will Flood, 29–30 August 2026.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --panel:#DCDFD6; --panel-deep:#C6CABE; --panel-edge:#A9AEA1;
+    --ink:#1A1D19; --ink-soft:#565C52;
+    --lcd:#16241C; --lcd-text:#7FE8A8; --lcd-dim:#3E7A57;
+    --amber:#E8A33D; --red:#D14432; --green:#3FBF6A;
+    --display:"Barlow Condensed",Impact,sans-serif;
+    --body:"Inter",system-ui,sans-serif;
+    --mono:"IBM Plex Mono",ui-monospace,monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{background:var(--panel-edge);font-family:var(--body);color:var(--ink);
+    -webkit-font-smoothing:antialiased;padding:14px;
+    padding-bottom:calc(28px + env(safe-area-inset-bottom))}
+  .unit{max-width:720px;margin:0 auto;background:var(--panel);
+    border:1px solid var(--panel-edge);border-radius:4px;
+    box-shadow:0 1px 0 #EDEFE9 inset,0 8px 28px rgba(0,0,0,.22);overflow:hidden}
+
+  header{padding:22px 18px 20px;border-bottom:2px solid var(--ink);
+    background:linear-gradient(180deg,#E6E9E0,#D3D7CE)}
+  .marque{font-family:var(--display);font-weight:600;font-size:11px;
+    letter-spacing:.24em;text-transform:uppercase;color:var(--ink-soft);margin:0 0 7px}
+  h1{font-family:var(--display);font-weight:700;font-size:40px;line-height:.95;
+    text-transform:uppercase;margin:0;letter-spacing:.005em}
+  h1 small{display:block;font-size:21px;font-weight:600;color:var(--ink-soft);
+    margin-top:6px;letter-spacing:.04em}
+  .byline{margin:14px 0 0;padding-top:12px;border-top:1px solid var(--panel-edge);
+    font-size:13px;line-height:1.5}
+  .byline b{font-weight:600}
+  .byline span{color:var(--ink-soft)}
+
+  .claim{background:var(--ink);color:#EDEFE9;padding:16px 18px}
+  .claim p{margin:0;font-size:14.5px;line-height:1.6}
+  .claim b{color:#fff}
+
+  .stats{display:flex;flex-wrap:wrap;background:var(--panel-deep);
+    border-bottom:1px solid var(--panel-edge)}
+  .stat{flex:1 1 33%;padding:12px 8px;border-right:1px solid var(--panel-edge);
+    border-bottom:1px solid var(--panel-edge);text-align:center}
+  .stat b{display:block;font-family:var(--mono);font-size:17px;font-weight:600}
+  .stat span{font-family:var(--display);font-size:9.5px;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--ink-soft)}
+
+  main{padding:18px}
+  section{margin:0 0 24px;padding:0 0 24px;border-bottom:1px solid var(--panel-edge)}
+  section:last-child{border-bottom:0;margin-bottom:0;padding-bottom:0}
+  .hd{display:flex;align-items:baseline;gap:10px;margin:0 0 11px}
+  .no{font-family:var(--mono);font-weight:600;font-size:11px;color:var(--ink-soft);
+    border:1px solid var(--panel-edge);padding:2px 6px;border-radius:2px;background:#E7E9E2}
+  h2{font-family:var(--display);font-weight:700;font-size:21px;
+    text-transform:uppercase;letter-spacing:.05em;margin:0}
+  h3{font-family:var(--display);font-weight:600;font-size:13.5px;letter-spacing:.09em;
+    text-transform:uppercase;margin:18px 0 8px;color:var(--ink-soft)}
+  p{font-size:13.5px;line-height:1.65;margin:0 0 11px}
+  ul,ol{margin:0 0 11px;padding-left:20px;font-size:13.5px;line-height:1.65}
+  li{margin-bottom:6px}
+  code{font-family:var(--mono);font-size:12px;background:#E7E9E2;
+    padding:1px 4px;border-radius:2px;border:1px solid var(--panel-edge)}
+  pre{background:var(--lcd);color:var(--lcd-text);border:1px solid #0B120E;
+    border-radius:3px;box-shadow:0 2px 6px rgba(0,0,0,.32) inset;
+    padding:12px;margin:0 0 11px;font-family:var(--mono);font-size:11.5px;
+    line-height:1.7;overflow-x:auto;-webkit-overflow-scrolling:touch}
+  pre .c{color:var(--lcd-dim)}
+  table{width:100%;border-collapse:collapse;font-size:12.5px;margin:0 0 11px}
+  th{font-family:var(--display);font-size:11px;letter-spacing:.11em;text-transform:uppercase;
+    text-align:left;padding:7px;border-bottom:1.5px solid var(--ink);color:var(--ink-soft)}
+  td{padding:7px;border-bottom:1px solid var(--panel-edge);font-size:12.5px}
+  td.m{font-family:var(--mono);font-size:11.5px}
+  .flag{border-left:3px solid var(--amber);background:#E5E3D8;
+    padding:10px 12px;margin:0 0 11px;font-size:12.5px;line-height:1.6}
+  .flag.go{border-left-color:var(--green)}
+  .flag.stop{border-left-color:var(--red)}
+  .flag b{font-weight:600}
+
+  .step{display:flex;gap:12px;margin:0 0 14px}
+  .step .n{flex:0 0 26px;height:26px;border-radius:50%;background:var(--ink);
+    color:#EDEFE9;font-family:var(--mono);font-size:12px;font-weight:600;
+    display:flex;align-items:center;justify-content:center}
+  .step .t{flex:1}
+  .step .t b{display:block;font-family:var(--display);font-size:14px;
+    letter-spacing:.05em;text-transform:uppercase;margin-bottom:3px}
+  .step .t p{margin:0;font-size:13px}
+
+  footer{padding:18px;border-top:2px solid var(--ink);background:var(--panel-deep);
+    font-size:12px;line-height:1.7;color:var(--ink-soft)}
+  footer b{color:var(--ink);font-weight:600}
+  footer .c{font-family:var(--mono);font-size:11.5px;margin-top:10px;
+    padding-top:10px;border-top:1px solid var(--panel-edge)}
+  @media print{body{background:#fff;padding:0}.unit{box-shadow:none;border:0;max-width:none}}
+</style>
+</head>
+<body>
+<div class="unit">
+
+<header>
+  <p class="marque">Project record &middot; 29&ndash;30 August 2026</p>
+  <h1>Head Tracking<br>From Nothing
+    <small>RayNeo Air 4 Pro &middot; Android &middot; no root</small>
+  </h1>
+  <p class="byline">
+    <b>Will Flood</b><br>
+    <span>Reverse engineering, protocol decoding, implementation and testing.<br>
+    All work carried out on an Android handheld with the glasses in hand.</span>
+  </p>
+</header>
+
+<div class="claim">
+  <p>The RayNeo Air 4 Pro has <b>no published Android SDK</b> for its motion sensors, and no third-party tool existed to read them. In one session I established the USB command protocol from scratch, decoded the sensor frame, mapped every head-rotation axis, and built working head tracking that drives a real mouse cursor &mdash; <b>on an unrooted Android device</b>.</p>
+</div>
+
+<div class="stats">
+  <div class="stat"><b>0x1BBB:AF50</b><span>Device identified</span></div>
+  <div class="stat"><b>00 01</b><span>Enable command</span></div>
+  <div class="stat"><b>7 &times; float32</b><span>Frame decoded</span></div>
+  <div class="stat"><b>118 Hz</b><span>Sample rate</span></div>
+  <div class="stat"><b>&plusmn;0.5&deg;</b><span>Integration error</span></div>
+  <div class="stat"><b>No root</b><span>Mouse injection</span></div>
+</div>
+
+<main>
+
+<section>
+  <div class="hd"><span class="no">01</span><h2>The starting point</h2></div>
+  <p>The glasses connect to a phone over USB-C and act as a display. Inside them is an inertial measurement unit &mdash; accelerometer and gyroscope &mdash; used by RayNeo's own app. That app is the only software that can read it. There is no public SDK, no documentation, and no community driver for Android.</p>
+  <p>The first attempt was a browser probe using WebUSB. It failed:</p>
+<pre>cfg 1 if 0 (HID) .. refused
+   The requested interface implements a protected class.</pre>
+  <p>That refusal is often read as "this device is unreachable". It isn't &mdash; it's a Chrome policy that blocks HID interfaces on principle. Android's own USB stack has no such rule. Recognising the difference is what made everything after it possible.</p>
+</section>
+
+<section>
+  <div class="hd"><span class="no">02</span><h2>Getting in</h2></div>
+  <p>Termux with a wrapped file descriptor claims the interface without root. libusb must be put into no-discovery mode first, because Android cannot enumerate the USB bus from userspace.</p>
+<pre>libusb_set_option(NULL, LIBUSB_OPTION_NO_DEVICE_DISCOVERY)
+libusb_wrap_sys_device(ctx, fd, &amp;handle)
+libusb_set_auto_detach_kernel_driver(handle, 1)
+libusb_claim_interface(handle, 0)      <span class="c">-&gt; success</span></pre>
+  <p>The device descriptor gave nothing away: a bare vendor pipe, usage page <code>0xFF00</code>, one 64-byte input report, one 64-byte output report, no report IDs, no sensor usages. Everything about the protocol was private.</p>
+</section>
+
+<section>
+  <div class="hd"><span class="no">03</span><h2>The protocol</h2></div>
+  <p>Three findings, each of which cost time to reach and none of which is obvious.</p>
+
+  <div class="step"><div class="n">1</div><div class="t"><b>Commands go down the control pipe</b>
+  <p>Sent to the interrupt OUT endpoint, the device ignores them entirely. Sent as a HID <code>SET_REPORT</code> control transfer, it answers.</p></div></div>
+
+  <div class="step"><div class="n">2</div><div class="t"><b>Nothing is ever pushed</b>
+  <p>Passive listening returns zero frames indefinitely. The device is strictly request&ndash;response. An hour was lost waiting for a stream that does not exist.</p></div></div>
+
+  <div class="step"><div class="n">3</div><div class="t"><b>Sensor mode is not persistent</b>
+  <p>A fresh process gets status frames. One command &mdash; <code>00 01</code> &mdash; switches it into sensor mode, and it reverts when the process exits.</p></div></div>
+
+<pre><span class="c">; the working call</span>
+bmRequestType 0x21   bRequest 0x09
+wValue        0x0301   wIndex 0x0000
+payload       00 01
+<span class="c">; reply arrives on interrupt IN 0x81, 64 bytes</span></pre>
+</section>
+
+<section>
+  <div class="hd"><span class="no">04</span><h2>Decoding the frame</h2></div>
+  <p>Two frame types exist, distinguished by byte 1. <code>0xC8</code> carries a status block with a running clock; <code>0x65</code> carries the sensors.</p>
+<pre>99 65 40 00 | 36 3E 1D 41 | 5C 25 80 3F | 2F E6 03 3F | 00 F5 3E 3C | 40 B4 71 3D | 78 A5 CC 3D | 00 08 E4 41
+   header   |   accel X   |   accel Y   |   accel Z   |   gyro X    |   gyro Y    |   gyro Z    | temperature
+                 9.8277        1.0011        0.5152        0.0117        0.0590        0.0999        28.50</pre>
+  <p>Seven little-endian float32 values from <b>offset 4</b>. This was the hardest single detail. I initially read from offset 8, on the assumption that the sensor frame shared the status frame's clock field. It does not. The error is invisible when the glasses lie flat &mdash; accel X is near zero, so the remaining axes still produce a plausible gravity reading.</p>
+  <div class="flag go"><b>How it was caught.</b> Cross-checking my decode against a second independent analysis surfaced the discrepancy. I then designed a test that separates the two readings: on its left side, gravity leaves the offset-8 plane. One layout holds 9.81, the other collapses.</div>
+<pre>left side, glasses still, 52 frames
+  offset 4 :  |v| mean 9.89   min 9.85   max 9.92   MATCHES GRAVITY
+  offset 8 :  |v| mean 1.12   min 1.09   max 1.16   does not match</pre>
+</section>
+
+<section>
+  <div class="hd"><span class="no">05</span><h2>Proving the accelerometer</h2></div>
+  <p>A stationary accelerometer must read 9.81 m/s&sup2; in every orientation, with the vector pointing at the ground. Four held positions, hands off, several hundred samples each:</p>
+  <table>
+    <tr><th>position</th><th>X</th><th>Y</th><th>magnitude</th><th>vector angle</th></tr>
+    <tr><td>flat, lenses down</td><td class="m">8.24</td><td class="m">5.29</td><td class="m">9.79</td><td class="m">33&deg;</td></tr>
+    <tr><td>nose down</td><td class="m">&minus;3.84</td><td class="m">9.06</td><td class="m">9.84</td><td class="m">113&deg;</td></tr>
+    <tr><td>flat again</td><td class="m">7.63</td><td class="m">6.11</td><td class="m">9.77</td><td class="m">39&deg;</td></tr>
+    <tr><td>flat, lenses up</td><td class="m">&minus;8.10</td><td class="m">&minus;5.38</td><td class="m">9.72</td><td class="m">214&deg;</td></tr>
+  </table>
+  <div class="flag go"><b>The decisive test.</b> Inverting the glasses flipped both channels' signs with residuals of <b>0.14</b> and <b>&minus;0.09</b>, and rotated the gravity vector <b>181&deg;</b> for a 180&deg; physical flip. Nothing but a real accelerometer behaves that way.</div>
+</section>
+
+<section>
+  <div class="hd"><span class="no">06</span><h2>Mapping the head axes</h2></div>
+  <p>Each rotation isolated in turn, eight seconds per run, several hundred samples each.</p>
+  <table>
+    <tr><th>movement</th><th>gyro signature</th></tr>
+    <tr><td>pitch &mdash; nodding</td><td>X alone, &plusmn;60&deg;/s while Y and Z stay under 7</td></tr>
+    <tr><td>yaw &mdash; left / right</td><td>Y large (&plusmn;118), Z <b>same sign</b> at 28%</td></tr>
+    <tr><td>roll &mdash; ear to shoulder</td><td>Y and Z <b>opposite signs</b>, similar magnitude</td></tr>
+    <tr><td>held still</td><td>all three under 2.5&deg;/s</td></tr>
+  </table>
+  <p>Yaw and roll both land across the Y/Z pair because the IMU is mounted at an angle inside the temple arm. Across ten yaw samples Y and Z shared sign <b>10 times out of 10</b>, mean ratio 0.28 &mdash; an offset of about <b>15&deg;</b>. Because roll splits them oppositely and yaw together, both are recoverable arithmetically, with no calibration matrix and no trigonometry:</p>
+<pre>pitch = gyroX
+yaw   = gyroY + gyroZ
+roll  = gyroY - gyroZ</pre>
+</section>
+
+<section>
+  <div class="hd"><span class="no">07</span><h2>Building the tracker</h2></div>
+  <p>Raw rates are not head tracking. Four things had to be added.</p>
+  <ul>
+    <li><b>Bias calibration.</b> Two seconds stationary at startup establishes each axis's zero offset.</li>
+    <li><b>Dead-zone.</b> Rates under 2&deg;/s count as zero &mdash; a threshold taken from the measured noise floor, not guessed.</li>
+    <li><b>Continuous bias re-learning.</b> Yaw has no gravity reference and drifts without correction. When the sensor reads still for a second, the bias estimate is nudged toward the current reading. Simulated over 30 seconds this reduced drift from 9&deg; to <b>0.00&deg;</b>.</li>
+    <li><b>Sub-pixel accumulation.</b> A slow 5&deg;/s turn produces <b>0.508</b> pixels per tick. Truncating each tick to an integer would floor every one to zero and slow head movement would do nothing at all. The fraction is carried between ticks.</li>
+  </ul>
+  <div class="flag go"><b>Accuracy:</b> one second at a known 90&deg;/s integrates to <b>89.5&deg;</b>. Half a degree over a full head turn.</div>
+</section>
+
+<section>
+  <div class="hd"><span class="no">08</span><h2>Driving a real cursor</h2></div>
+  <p>Injecting <i>relative</i> mouse motion on Android is normally said to require root, because <code>/dev/uinput</code> is root-only on a standard device. On this handheld it is not:</p>
+<pre>$ ls -l /dev/uinput
+crw-rw-rw-. 1 uhid uhid 10, 223 /dev/uinput</pre>
+  <p>Mode 666, and SELinux permits both the open and the <code>UI_DEV_CREATE</code> ioctl. A virtual mouse can therefore be registered from ordinary userspace Python. Verified by drawing a square with the cursor before any sensor was involved.</p>
+  <div class="flag go"><b>Result:</b> head motion moves the system cursor, with no root, no vendor SDK and no custom kernel. Because the cursor is a real input device, anything that accepts a mouse accepts it &mdash; including a streamed Windows game.</div>
+</section>
+
+<section>
+  <div class="hd"><span class="no">09</span><h2>What was built</h2></div>
+  <table>
+    <tr><th>file</th><th>purpose</th></tr>
+    <tr><td class="m">rayneo_head.py</td><td>The finished tool. Mouse and screen modes, switchable live, with recentre and recalibrate.</td></tr>
+    <tr><td class="m">uinput_mouse.py</td><td>Root-free virtual mouse via uinput.</td></tr>
+    <tr><td class="m">rayneo_tracker.py</td><td>Tracker engine: calibration, dead-zone, drift correction.</td></tr>
+    <tr><td class="m">rayneo_offset.py</td><td>The test that settled the frame layout.</td></tr>
+    <tr><td class="m">rayneo_axes.py</td><td>Single-position sampler with gravity-magnitude validation.</td></tr>
+    <tr><td class="m">rayneo_map.py</td><td>Command-space mapper with clock masking.</td></tr>
+    <tr><td class="m">rayneo_ctrl.py</td><td>Descriptor reader and control-pipe prober. Found the channel.</td></tr>
+  </table>
+</section>
+
+<section>
+  <div class="hd"><span class="no">10</span><h2>Honest limits</h2></div>
+  <ul>
+    <li>Everything here was measured on <b>one device</b>. A firmware update could change any of it.</li>
+    <li>The 15&deg; mount offset is specific to this pair and may vary between units.</li>
+    <li>The <code>/dev/uinput</code> permissions are a property of <b>this handheld</b>. On a standard Android phone this would need root.</li>
+    <li>Yaw is gyro-only, so it drifts. The bias re-learning largely handles it; a recentre control exists for when it doesn't.</li>
+    <li>This produces mouse and orientation output. It is not a full spatial-anchoring system.</li>
+  </ul>
+</section>
+
+</main>
+
+<footer>
+  <b>Author.</b> Will Flood. Reverse engineering, protocol analysis, test design, implementation and verification carried out 29&ndash;30 August 2026, on an Android handheld with the hardware in hand. Development assistance from AI tools; all testing, measurement and decisions were mine.
+
+  <div class="c">
+    &copy; 2026 Will Flood. This document and the accompanying source code are my original work and are protected by copyright from the moment of creation.<br><br>
+    The protocol facts recorded here &mdash; byte offsets, command values, frame structure &mdash; are discoveries about third-party hardware and are not claimed as property. The implementation, the test methodology and this account are.<br><br>
+    Not affiliated with, endorsed by or connected to RayNeo or TCL.
+  </div>
+</footer>
+
+</div>
+</body>
+</html>

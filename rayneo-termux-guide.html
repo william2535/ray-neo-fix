@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>RayNeo IMU — Termux Setup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;700&family=IBM+Plex+Mono:wght@400;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --panel:#DCDFD6; --panel-deep:#C6CABE; --panel-edge:#A9AEA1;
+    --ink:#1A1D19; --ink-soft:#565C52;
+    --lcd:#16241C; --lcd-text:#7FE8A8; --lcd-dim:#3E7A57;
+    --amber:#E8A33D; --red:#D14432; --green:#3FBF6A;
+    --display:"Barlow Condensed",Impact,sans-serif;
+    --body:"Inter",system-ui,sans-serif;
+    --mono:"IBM Plex Mono",ui-monospace,monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--panel-edge);font-family:var(--body);color:var(--ink);
+    -webkit-font-smoothing:antialiased;padding:14px;
+    padding-bottom:calc(28px + env(safe-area-inset-bottom));
+  }
+  .unit{
+    max-width:640px;margin:0 auto;background:var(--panel);
+    border:1px solid var(--panel-edge);border-radius:4px;
+    box-shadow:0 1px 0 #EDEFE9 inset,0 6px 20px rgba(0,0,0,.18);overflow:hidden;
+  }
+  header{padding:16px;border-bottom:1px solid var(--panel-edge);
+    background:linear-gradient(180deg,#E4E7DE,#D5D8CF)}
+  .marque{font-family:var(--display);font-weight:700;font-size:11px;
+    letter-spacing:.22em;text-transform:uppercase;color:var(--ink-soft);margin:0 0 4px}
+  h1{font-family:var(--display);font-weight:700;font-size:30px;line-height:1;
+    text-transform:uppercase;margin:0}
+  .sub{font-size:12.5px;line-height:1.55;color:var(--ink-soft);margin:8px 0 0;max-width:46ch}
+
+  .facts{display:flex;background:var(--panel-deep);
+    border-bottom:1px solid var(--panel-edge)}
+  .fact{flex:1;padding:10px 8px;border-right:1px solid var(--panel-edge);text-align:center}
+  .fact:last-child{border-right:0}
+  .fact b{display:block;font-family:var(--mono);font-size:13px;font-weight:600}
+  .fact span{font-family:var(--display);font-size:10px;letter-spacing:.13em;
+    text-transform:uppercase;color:var(--ink-soft)}
+
+  main{padding:16px}
+  .step{margin:0 0 20px;padding:0 0 20px;border-bottom:1px solid var(--panel-edge)}
+  .step:last-child{border-bottom:0;margin-bottom:0;padding-bottom:0}
+  .hd{display:flex;align-items:baseline;gap:9px;margin:0 0 9px}
+  .no{font-family:var(--mono);font-weight:600;font-size:11px;color:var(--ink-soft);
+    border:1px solid var(--panel-edge);padding:2px 5px;border-radius:2px;background:#E7E9E2}
+  .hd h2{font-family:var(--display);font-weight:700;font-size:19px;
+    text-transform:uppercase;letter-spacing:.05em;margin:0}
+  p{font-size:13.5px;line-height:1.6;margin:0 0 10px}
+  p.note{color:var(--ink-soft);font-size:12.5px}
+  ul{margin:0 0 10px;padding-left:20px;font-size:13.5px;line-height:1.6}
+  li{margin-bottom:5px}
+  code.inline{font-family:var(--mono);font-size:12px;background:#E7E9E2;
+    padding:1px 4px;border-radius:2px;border:1px solid var(--panel-edge)}
+  pre{
+    background:var(--lcd);color:var(--lcd-text);border:1px solid #0B120E;
+    border-radius:3px;box-shadow:0 2px 5px rgba(0,0,0,.3) inset;
+    padding:11px;margin:0 0 10px;font-family:var(--mono);font-size:11.5px;
+    line-height:1.65;overflow-x:auto;-webkit-overflow-scrolling:touch;
+  }
+  pre .c{color:var(--lcd-dim)}
+  .flag{border-left:3px solid var(--amber);background:#E5E3D8;
+    padding:9px 11px;margin:0 0 10px;font-size:12.5px;line-height:1.55}
+  .flag.stop{border-left-color:var(--red)}
+  .flag.go{border-left-color:var(--green)}
+  .flag b{font-weight:600}
+  footer{padding:14px 16px;border-top:1px solid var(--panel-edge);
+    background:var(--panel-deep);font-size:11.5px;line-height:1.6;color:var(--ink-soft)}
+</style>
+</head>
+<body>
+<div class="unit">
+
+  <header>
+    <p class="marque">Field diagnostic &middot; stage two</p>
+    <h1>Reading the IMU</h1>
+    <p class="sub">Claim the glasses' HID interface from Termux and dump what the sensor is sending. No root, no Android Studio.</p>
+  </header>
+
+  <div class="facts">
+    <div class="fact"><b>0x1BBB</b><span>Vendor</span></div>
+    <div class="fact"><b>0xAF50</b><span>Product</span></div>
+    <div class="fact"><b>0x81</b><span>Input EP</span></div>
+    <div class="fact"><b>64 B</b><span>Report</span></div>
+  </div>
+
+  <main>
+
+    <section class="step">
+      <div class="hd"><span class="no">01</span><h2>Install Termux</h2></div>
+      <div class="flag stop"><b>Not from the Play Store.</b> That build is abandoned and its USB support is broken. Get it from F-Droid or the Termux GitHub releases page.</div>
+      <p>Install <b>Termux</b> and <b>Termux:API</b> from the same source — mixing sources breaks the signature check and the two apps won't talk to each other.</p>
+    </section>
+
+    <section class="step">
+      <div class="hd"><span class="no">02</span><h2>Install the packages</h2></div>
+      <p>Open Termux and run these one at a time:</p>
+<pre>pkg update
+pkg install python libusb termux-api</pre>
+      <p class="note">Takes a couple of minutes on 4G. If <code class="inline">pkg update</code> stalls, run <code class="inline">termux-change-repo</code> and pick a different mirror.</p>
+    </section>
+
+    <section class="step">
+      <div class="hd"><span class="no">03</span><h2>Get the script across</h2></div>
+      <p>Download <b>rayneo_dump.py</b> to your phone, then:</p>
+<pre>termux-setup-storage
+cp ~/storage/downloads/rayneo_dump.py ~/
+cd ~
+ls</pre>
+      <p class="note">Grant the storage permission when Android asks. You should see the filename listed.</p>
+    </section>
+
+    <section class="step">
+      <div class="hd"><span class="no">04</span><h2>Find the glasses</h2></div>
+      <p>Plug the glasses in, then:</p>
+<pre>termux-usb -l</pre>
+      <p>You should get back a path like:</p>
+<pre><span class="c">[</span>
+  "/dev/bus/usb/001/002"
+<span class="c">]</span></pre>
+      <div class="flag"><b>Empty list?</b> Unplug, replug, and check the glasses are powered up and showing a picture. If it stays empty, Termux can't see them and this route is closed.</div>
+    </section>
+
+    <section class="step">
+      <div class="hd"><span class="no">05</span><h2>First read</h2></div>
+      <p>Use your own path from step 4:</p>
+<pre>termux-usb -r -e "python rayneo_dump.py" \
+  /dev/bus/usb/001/002</pre>
+      <p>Android will pop a permission dialog. Accept it. The script claims interface 0 and listens for 15 seconds — <b>move your head around the whole time</b>.</p>
+      <div class="flag go"><b>What good looks like:</b> rows of hex where some bytes sit in square brackets. Brackets mean that byte changed since the last frame. Those are your gyro axes.</div>
+    </section>
+
+    <section class="step">
+      <div class="hd"><span class="no">06</span><h2>If nothing arrives</h2></div>
+      <p>Frames read = 0 means the IMU is idle until told to start. Try the guessed wake-up patterns:</p>
+<pre>termux-usb -r -e "python rayneo_dump.py --probe --seconds 20" \
+  /dev/bus/usb/001/002</pre>
+      <p class="note">These are generic patterns from similar vendor HID glasses, not RayNeo's actual command. Low odds, but it costs nothing to fire them.</p>
+      <p>Still silent? Then the real command has to come from watching the Windows SDK do it — USBPcap and Wireshark on a PC with the glasses attached. That's a bigger job, and worth deciding on before you start.</p>
+    </section>
+
+    <section class="step">
+      <div class="hd"><span class="no">07</span><h2>Other switches</h2></div>
+      <ul>
+        <li><code class="inline">--all</code> — print every frame, not just changed ones</li>
+        <li><code class="inline">--seconds 30</code> — listen longer</li>
+        <li><code class="inline">--send 0201</code> — fire a specific hex command first</li>
+        <li><code class="inline">--ep 0x82</code> — try a different input endpoint</li>
+      </ul>
+      <p class="note">Put switches inside the quotes, after the script name.</p>
+    </section>
+
+    <section class="step">
+      <div class="hd"><span class="no">08</span><h2>Send me the output</h2></div>
+      <p>Long-press in Termux, choose <b>More &rarr; Select text</b>, or just screenshot it. Paste back roughly twenty frames plus the summary block and we'll map which bytes are yaw, pitch and roll.</p>
+    </section>
+
+  </main>
+
+  <footer>
+    Even with the IMU fully decoded, this gets you a head-tracked floating screen on Android. It does not get you head-look inside a game — no Android title accepts an orientation input stream. That part only exists on Windows.
+  </footer>
+
+</div>
+</body>
+</html>

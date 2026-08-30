@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>RayNeo USB Probe</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;700&family=IBM+Plex+Mono:wght@400;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --panel:#DCDFD6;
+    --panel-deep:#C6CABE;
+    --panel-edge:#A9AEA1;
+    --ink:#1A1D19;
+    --ink-soft:#565C52;
+    --lcd:#16241C;
+    --lcd-text:#7FE8A8;
+    --lcd-dim:#3E7A57;
+    --led-green:#3FBF6A;
+    --led-amber:#E8A33D;
+    --led-red:#D14432;
+    --led-off:#8B9086;
+    --display:"Barlow Condensed",Impact,sans-serif;
+    --body:"Inter",system-ui,sans-serif;
+    --mono:"IBM Plex Mono",ui-monospace,monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--panel-edge);
+    font-family:var(--body);
+    color:var(--ink);
+    -webkit-font-smoothing:antialiased;
+    padding:14px;
+    padding-bottom:calc(28px + env(safe-area-inset-bottom));
+  }
+  .unit{
+    max-width:620px;margin:0 auto;
+    background:var(--panel);
+    border:1px solid var(--panel-edge);
+    border-radius:4px;
+    box-shadow:0 1px 0 #EDEFE9 inset, 0 6px 20px rgba(0,0,0,.18);
+    overflow:hidden;
+  }
+  header{
+    padding:16px 16px 14px;
+    border-bottom:1px solid var(--panel-edge);
+    background:linear-gradient(180deg,#E4E7DE,#D5D8CF);
+  }
+  .marque{
+    font-family:var(--display);font-weight:700;
+    font-size:11px;letter-spacing:.22em;text-transform:uppercase;
+    color:var(--ink-soft);margin:0 0 4px;
+  }
+  h1{
+    font-family:var(--display);font-weight:700;
+    font-size:31px;line-height:1;letter-spacing:.01em;
+    text-transform:uppercase;margin:0;
+  }
+  .sub{font-size:12.5px;line-height:1.5;color:var(--ink-soft);margin:8px 0 0;max-width:44ch}
+
+  /* signature: fire-panel style indicator row */
+  .leds{
+    display:flex;gap:0;border-top:1px solid var(--panel-edge);
+    border-bottom:1px solid var(--panel-edge);background:var(--panel-deep);
+  }
+  .led{
+    flex:1;padding:10px 6px 9px;text-align:center;
+    border-right:1px solid var(--panel-edge);
+  }
+  .led:last-child{border-right:0}
+  .lamp{
+    width:11px;height:11px;border-radius:50%;margin:0 auto 6px;
+    background:var(--led-off);
+    box-shadow:0 0 0 1px rgba(0,0,0,.22) inset;
+    transition:background .18s ease, box-shadow .18s ease;
+  }
+  .led[data-state="ok"] .lamp{background:var(--led-green);box-shadow:0 0 0 1px rgba(0,0,0,.2) inset,0 0 9px rgba(63,191,106,.85)}
+  .led[data-state="warn"] .lamp{background:var(--led-amber);box-shadow:0 0 0 1px rgba(0,0,0,.2) inset,0 0 9px rgba(232,163,61,.85)}
+  .led[data-state="fault"] .lamp{background:var(--led-red);box-shadow:0 0 0 1px rgba(0,0,0,.2) inset,0 0 9px rgba(209,68,50,.85)}
+  .led span{
+    font-family:var(--display);font-weight:500;font-size:10px;
+    letter-spacing:.13em;text-transform:uppercase;color:var(--ink-soft);
+  }
+
+  main{padding:16px}
+  .step{margin:0 0 18px}
+  .step:last-child{margin-bottom:0}
+  .step-hd{
+    display:flex;align-items:baseline;gap:9px;margin:0 0 8px;
+  }
+  .step-no{
+    font-family:var(--mono);font-weight:600;font-size:11px;
+    color:var(--ink-soft);border:1px solid var(--panel-edge);
+    padding:2px 5px;border-radius:2px;background:#E7E9E2;
+  }
+  .step-hd h2{
+    font-family:var(--display);font-weight:700;font-size:18px;
+    text-transform:uppercase;letter-spacing:.05em;margin:0;
+  }
+  p.note{font-size:13px;line-height:1.55;color:var(--ink-soft);margin:0 0 10px}
+
+  button{
+    font-family:var(--display);font-weight:700;font-size:15px;
+    text-transform:uppercase;letter-spacing:.09em;
+    width:100%;padding:13px 14px;
+    background:var(--ink);color:#EDEFE9;
+    border:0;border-radius:3px;cursor:pointer;
+    transition:background .15s ease,transform .06s ease;
+  }
+  button:hover:not(:disabled){background:#2C3129}
+  button:active:not(:disabled){transform:translateY(1px)}
+  button:focus-visible{outline:3px solid var(--led-amber);outline-offset:2px}
+  button:disabled{background:var(--panel-deep);color:#8C9187;cursor:not-allowed}
+  button.secondary{background:transparent;color:var(--ink);border:1.5px solid var(--ink)}
+  button.secondary:hover:not(:disabled){background:#CFD3C9}
+  button.secondary:disabled{border-color:var(--panel-edge);color:#9198 8C;color:#91988C}
+  .btn-row{display:flex;gap:8px}
+  .btn-row button{flex:1}
+
+  .lcd{
+    background:var(--lcd);border-radius:3px;
+    border:1px solid #0B120E;
+    box-shadow:0 2px 5px rgba(0,0,0,.3) inset;
+    padding:12px;margin-top:10px;
+    font-family:var(--mono);font-size:11.5px;line-height:1.6;
+    color:var(--lcd-text);
+    white-space:pre-wrap;word-break:break-word;
+    max-height:340px;overflow:auto;
+    -webkit-overflow-scrolling:touch;
+  }
+  .lcd:empty{display:none}
+  .lcd .dim{color:var(--lcd-dim)}
+  .lcd .hi{color:#C9F5DA;font-weight:600}
+  .lcd .bad{color:#F0836F}
+  .lcd .warn{color:#F0C27A}
+
+  footer{
+    padding:13px 16px;border-top:1px solid var(--panel-edge);
+    background:var(--panel-deep);
+    font-size:11.5px;line-height:1.55;color:var(--ink-soft);
+  }
+  footer b{color:var(--ink);font-weight:600}
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="unit">
+
+  <header>
+    <p class="marque">Field diagnostic &middot; single unit</p>
+    <h1>RayNeo USB Probe</h1>
+    <p class="sub">Checks whether an Android browser can reach the IMU interface inside RayNeo Air glasses. Answers one question: is there a door in?</p>
+  </header>
+
+  <div class="leds" id="leds">
+    <div class="led" id="led-browser"><div class="lamp"></div><span>Browser</span></div>
+    <div class="led" id="led-device"><div class="lamp"></div><span>Device</span></div>
+    <div class="led" id="led-claim"><div class="lamp"></div><span>Claim</span></div>
+    <div class="led" id="led-data"><div class="lamp"></div><span>Data</span></div>
+  </div>
+
+  <main>
+
+    <section class="step">
+      <div class="step-hd"><span class="step-no">01</span><h2>Browser support</h2></div>
+      <p class="note">Runs on load. Needs Chrome or Edge on Android over https or a local file. Firefox and Safari have no WebUSB.</p>
+      <div class="lcd" id="out-browser"></div>
+    </section>
+
+    <section class="step">
+      <div class="step-hd"><span class="step-no">02</span><h2>Connect glasses</h2></div>
+      <p class="note">Plug the glasses into the phone, then tap below and pick the RayNeo entry from the chooser. If nothing is listed, the video path is working but the data path is hidden from the browser.</p>
+      <button id="btn-connect">Open device chooser</button>
+      <div class="lcd" id="out-device"></div>
+    </section>
+
+    <section class="step">
+      <div class="step-hd"><span class="step-no">03</span><h2>Claim interfaces</h2></div>
+      <p class="note">Tries to take control of each interface in turn. Protected classes such as HID are usually refused — that refusal is itself a result worth recording.</p>
+      <button id="btn-claim" disabled>Run claim test</button>
+      <div class="lcd" id="out-claim"></div>
+    </section>
+
+    <section class="step">
+      <div class="step-hd"><span class="step-no">04</span><h2>Listen for motion</h2></div>
+      <p class="note">Reads any claimed input endpoint for five seconds. Move your head while it runs. Changing bytes mean live IMU data.</p>
+      <button id="btn-listen" disabled>Listen 5 seconds</button>
+      <div class="lcd" id="out-listen"></div>
+    </section>
+
+    <section class="step">
+      <div class="step-hd"><span class="step-no">05</span><h2>Send me the results</h2></div>
+      <div class="btn-row">
+        <button class="secondary" id="btn-copy" disabled>Copy report</button>
+        <button class="secondary" id="btn-reset">Reset</button>
+      </div>
+      <div class="lcd" id="out-copy"></div>
+    </section>
+
+  </main>
+
+  <footer>
+    <b>If the chooser is empty:</b> the glasses expose no browser-accessible interface, and no Android app can read the gyro either. That is a real answer, not a failure of this tool.
+  </footer>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var device = null;
+  var claimed = [];      // {cfg, iface, alt, endpoints:[]}
+  var log = [];          // plain-text report lines
+
+  function el(id){ return document.getElementById(id); }
+  function lamp(id, state){ el(id).setAttribute("data-state", state); }
+
+  function esc(s){
+    return String(s).replace(/[&<>]/g, function(c){
+      return {"&":"&amp;","<":"&lt;",">":"&gt;"}[c];
+    });
+  }
+  function write(target, html, plain){
+    el(target).innerHTML = html;
+    if (plain !== false) log.push(el(target).textContent);
+  }
+  function append(target, html){
+    el(target).innerHTML += html;
+  }
+  function hex(n, w){
+    var s = Number(n).toString(16).toUpperCase();
+    while (s.length < (w||4)) s = "0" + s;
+    return "0x" + s;
+  }
+
+  var CLASS_NAMES = {
+    0:"per-interface", 1:"audio", 2:"comms", 3:"HID", 5:"physical",
+    6:"image", 7:"printer", 8:"mass storage", 9:"hub", 10:"CDC data",
+    11:"smart card", 13:"content security", 14:"video", 15:"healthcare",
+    16:"audio/video", 220:"diagnostic", 224:"wireless", 239:"misc",
+    254:"app specific", 255:"vendor specific"
+  };
+  function className(c){ return CLASS_NAMES[c] || "unknown"; }
+
+  /* ---- 01 browser ---- */
+  function checkBrowser(){
+    var ok = (typeof navigator !== "undefined") && !!navigator.usb;
+    var secure = window.isSecureContext;
+    var lines = [];
+    lines.push('WebUSB API ......... <span class="' + (ok?"hi":"bad") + '">' + (ok?"available":"NOT AVAILABLE") + "</span>");
+    lines.push('Secure context ..... <span class="' + (secure?"hi":"bad") + '">' + (secure?"yes":"no") + "</span>");
+    lines.push('<span class="dim">' + esc(navigator.userAgent.slice(0,110)) + "</span>");
+    if (!ok){
+      lines.push("");
+      lines.push('<span class="warn">Open this file in Chrome or Edge on Android. If you are viewing it inside another app, tap the share icon and choose Open in Chrome.</span>');
+    }
+    write("out-browser", lines.join("\n"));
+    lamp("led-browser", ok && secure ? "ok" : "fault");
+    el("btn-connect").disabled = !(ok && secure);
+  }
+
+  /* ---- 02 connect ---- */
+  async function connect(){
+    write("out-device", '<span class="dim">Opening chooser...</span>', false);
+    try {
+      device = await navigator.usb.requestDevice({ filters: [] });
+    } catch(e){
+      write("out-device", '<span class="warn">No device selected.</span>\n<span class="dim">' + esc(e.message) + "</span>");
+      lamp("led-device","warn");
+      return;
+    }
+
+    var L = [];
+    L.push('<span class="hi">DEVICE FOUND</span>');
+    L.push("Product ....... " + esc(device.productName || "(none reported)"));
+    L.push("Manufacturer .. " + esc(device.manufacturerName || "(none reported)"));
+    L.push("Serial ........ " + esc(device.serialNumber || "(none reported)"));
+    L.push("Vendor ID ..... " + hex(device.vendorId));
+    L.push("Product ID .... " + hex(device.productId));
+    L.push("Device class .. " + device.deviceClass + " (" + className(device.deviceClass) + ")");
+    L.push("USB version ... " + device.usbVersionMajor + "." + device.usbVersionMinor);
+
+    try {
+      await device.open();
+      L.push('Open .......... <span class="hi">granted</span>');
+    } catch(e){
+      L.push('Open .......... <span class="bad">refused</span> ' + esc(e.message));
+      write("out-device", L.join("\n"));
+      lamp("led-device","fault");
+      return;
+    }
+
+    if (device.configuration === null){
+      try { await device.selectConfiguration(1); } catch(e){
+        L.push('Config ........ <span class="bad">failed</span> ' + esc(e.message));
+      }
+    }
+
+    var cfgs = device.configurations || [];
+    L.push("");
+    L.push('<span class="hi">INTERFACES</span> (' + cfgs.length + " configuration" + (cfgs.length===1?"":"s") + ")");
+    cfgs.forEach(function(cfg){
+      L.push("cfg " + cfg.configurationValue + ":");
+      cfg.interfaces.forEach(function(iface){
+        iface.alternates.forEach(function(alt){
+          L.push("  if " + iface.interfaceNumber + " alt " + alt.alternateSetting +
+                 "  class " + alt.interfaceClass + " (" + className(alt.interfaceClass) + ")" +
+                 "  sub " + alt.interfaceSubclass + "  proto " + alt.interfaceProtocol);
+          if (!alt.endpoints.length){
+            L.push('       <span class="dim">no endpoints</span>');
+          }
+          alt.endpoints.forEach(function(ep){
+            L.push("       ep " + ep.endpointNumber + " " + ep.direction +
+                   " " + ep.type + " " + ep.packetSize + "B");
+          });
+        });
+      });
+    });
+
+    write("out-device", L.join("\n"));
+    lamp("led-device","ok");
+    el("btn-claim").disabled = false;
+    el("btn-copy").disabled = false;
+  }
+
+  /* ---- 03 claim ---- */
+  async function claimTest(){
+    if (!device){ return; }
+    claimed = [];
+    var L = [];
+    var cfgs = device.configurations || [];
+
+    for (var c = 0; c < cfgs.length; c++){
+      var cfg = cfgs[c];
+      if (device.configuration === null || device.configuration.configurationValue !== cfg.configurationValue){
+        try { await device.selectConfiguration(cfg.configurationValue); }
+        catch(e){ L.push("cfg " + cfg.configurationValue + ': <span class="bad">cannot select</span> ' + esc(e.message)); continue; }
+      }
+      for (var i = 0; i < cfg.interfaces.length; i++){
+        var iface = cfg.interfaces[i];
+        var alt = iface.alternates[0];
+        var label = "cfg " + cfg.configurationValue + " if " + iface.interfaceNumber +
+                    " (" + className(alt.interfaceClass) + ")";
+        try {
+          await device.claimInterface(iface.interfaceNumber);
+          var ins = alt.endpoints.filter(function(ep){ return ep.direction === "in"; });
+          L.push(label + ' .. <span class="hi">CLAIMED</span> ' + ins.length + " input endpoint" + (ins.length===1?"":"s"));
+          claimed.push({ iface: iface.interfaceNumber, endpoints: ins, cls: className(alt.interfaceClass) });
+        } catch(e){
+          L.push(label + ' .. <span class="bad">refused</span>');
+          L.push('   <span class="dim">' + esc(e.message) + "</span>");
+        }
+      }
+    }
+
+    var usable = claimed.filter(function(c){ return c.endpoints.length > 0; });
+    L.push("");
+    if (usable.length){
+      L.push('<span class="hi">' + usable.length + " interface" + (usable.length===1?"":"s") + " readable. Go to step 04.</span>");
+      lamp("led-claim","ok");
+      el("btn-listen").disabled = false;
+    } else if (claimed.length){
+      L.push('<span class="warn">Interfaces claimed but none carry input endpoints. Nothing to read.</span>');
+      lamp("led-claim","warn");
+    } else {
+      L.push('<span class="bad">Every interface refused. The browser cannot reach this device.</span>');
+      lamp("led-claim","fault");
+    }
+    write("out-claim", L.join("\n"));
+  }
+
+  /* ---- 04 listen ---- */
+  async function listen(){
+    var target = claimed.filter(function(c){ return c.endpoints.length > 0; })[0];
+    if (!target){ return; }
+    var ep = target.endpoints[0];
+    el("btn-listen").disabled = true;
+
+    write("out-listen", '<span class="dim">Listening on if ' + target.iface + " ep " + ep.endpointNumber +
+          ' for 5 seconds. Move your head now.</span>\n', false);
+
+    var stop = Date.now() + 5000;
+    var frames = 0, samples = [], errors = 0;
+
+    while (Date.now() < stop){
+      try {
+        var res = await device.transferIn(ep.endpointNumber, ep.packetSize);
+        if (res.data && res.data.byteLength){
+          frames++;
+          if (samples.length < 4){
+            var bytes = new Uint8Array(res.data.buffer);
+            var s = [];
+            for (var b = 0; b < Math.min(bytes.length, 20); b++){
+              s.push(("0" + bytes[b].toString(16)).slice(-2).toUpperCase());
+            }
+            samples.push(s.join(" ") + (bytes.length > 20 ? " ..." : ""));
+          }
+        }
+      } catch(e){
+        errors++;
+        if (errors > 6){
+          append("out-listen", '<span class="bad">Transfer failed: ' + esc(e.message) + "</span>\n");
+          break;
+        }
+      }
+    }
+
+    var L = [];
+    L.push("Interface ..... " + target.iface + " (" + target.cls + ")");
+    L.push("Endpoint ...... " + ep.endpointNumber + " " + ep.type + " " + ep.packetSize + "B");
+    L.push("Frames read ... " + frames + " in 5s");
+    L.push("Errors ........ " + errors);
+    L.push("");
+    if (frames){
+      L.push('<span class="hi">SAMPLE FRAMES</span>');
+      samples.forEach(function(s, n){ L.push(" " + (n+1) + ": " + s); });
+      L.push("");
+      L.push('<span class="hi">Live data confirmed. An Android reader is possible.</span>');
+      lamp("led-data","ok");
+    } else {
+      L.push('<span class="warn">Endpoint claimed but silent. The IMU may need a vendor wake-up command first.</span>');
+      lamp("led-data","warn");
+    }
+    write("out-listen", L.join("\n"));
+    el("btn-listen").disabled = false;
+  }
+
+  /* ---- 05 report ---- */
+  function buildReport(){
+    var parts = ["RAYNEO USB PROBE REPORT", new Date().toISOString(), ""];
+    ["out-browser","out-device","out-claim","out-listen"].forEach(function(id){
+      var t = el(id).textContent.trim();
+      if (t) parts.push("--- " + id.replace("out-","").toUpperCase() + " ---", t, "");
+    });
+    return parts.join("\n");
+  }
+
+  async function copyReport(){
+    var text = buildReport();
+    try {
+      await navigator.clipboard.writeText(text);
+      write("out-copy", '<span class="hi">Report copied. Paste it into the chat.</span>', false);
+    } catch(e){
+      write("out-copy", '<span class="warn">Clipboard blocked. Select the text below and copy it by hand.</span>\n\n' + esc(text), false);
+    }
+  }
+
+  function reset(){
+    if (device){ try { device.close(); } catch(e){} }
+    device = null; claimed = []; log = [];
+    ["out-device","out-claim","out-listen","out-copy"].forEach(function(id){ el(id).innerHTML = ""; });
+    ["led-device","led-claim","led-data"].forEach(function(id){ el(id).removeAttribute("data-state"); });
+    el("btn-claim").disabled = true;
+    el("btn-listen").disabled = true;
+    el("btn-copy").disabled = true;
+  }
+
+  el("btn-connect").addEventListener("click", connect);
+  el("btn-claim").addEventListener("click", claimTest);
+  el("btn-listen").addEventListener("click", listen);
+  el("btn-copy").addEventListener("click", copyReport);
+  el("btn-reset").addEventListener("click", reset);
+
+  checkBrowser();
+})();
+</script>
+</body>
+</html>

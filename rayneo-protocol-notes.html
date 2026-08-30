@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>RayNeo Air 4 Pro — Protocol Notes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;700&family=IBM+Plex+Mono:wght@400;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --panel:#DCDFD6; --panel-deep:#C6CABE; --panel-edge:#A9AEA1;
+    --ink:#1A1D19; --ink-soft:#565C52;
+    --lcd:#16241C; --lcd-text:#7FE8A8; --lcd-dim:#3E7A57;
+    --amber:#E8A33D; --red:#D14432; --green:#3FBF6A;
+    --display:"Barlow Condensed",Impact,sans-serif;
+    --body:"Inter",system-ui,sans-serif;
+    --mono:"IBM Plex Mono",ui-monospace,monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{background:var(--panel-edge);font-family:var(--body);color:var(--ink);
+    -webkit-font-smoothing:antialiased;padding:14px;
+    padding-bottom:calc(28px + env(safe-area-inset-bottom));}
+  .unit{max-width:660px;margin:0 auto;background:var(--panel);
+    border:1px solid var(--panel-edge);border-radius:4px;
+    box-shadow:0 1px 0 #EDEFE9 inset,0 6px 20px rgba(0,0,0,.18);overflow:hidden;}
+  header{padding:16px;border-bottom:1px solid var(--panel-edge);
+    background:linear-gradient(180deg,#E4E7DE,#D5D8CF)}
+  .marque{font-family:var(--display);font-weight:700;font-size:11px;
+    letter-spacing:.22em;text-transform:uppercase;color:var(--ink-soft);margin:0 0 4px}
+  h1{font-family:var(--display);font-weight:700;font-size:30px;line-height:1;
+    text-transform:uppercase;margin:0}
+  .sub{font-size:12.5px;line-height:1.55;color:var(--ink-soft);margin:8px 0 0;max-width:48ch}
+
+  .facts{display:flex;flex-wrap:wrap;background:var(--panel-deep);
+    border-bottom:1px solid var(--panel-edge)}
+  .fact{flex:1 1 25%;padding:10px 6px;border-right:1px solid var(--panel-edge);
+    border-top:1px solid var(--panel-edge);text-align:center}
+  .fact b{display:block;font-family:var(--mono);font-size:12.5px;font-weight:600}
+  .fact span{font-family:var(--display);font-size:9.5px;letter-spacing:.13em;
+    text-transform:uppercase;color:var(--ink-soft)}
+
+  main{padding:16px}
+  section{margin:0 0 22px;padding:0 0 22px;border-bottom:1px solid var(--panel-edge)}
+  section:last-child{border-bottom:0;margin-bottom:0;padding-bottom:0}
+  .hd{display:flex;align-items:baseline;gap:9px;margin:0 0 10px}
+  .no{font-family:var(--mono);font-weight:600;font-size:11px;color:var(--ink-soft);
+    border:1px solid var(--panel-edge);padding:2px 5px;border-radius:2px;background:#E7E9E2}
+  h2{font-family:var(--display);font-weight:700;font-size:19px;
+    text-transform:uppercase;letter-spacing:.05em;margin:0}
+  h3{font-family:var(--display);font-weight:700;font-size:14px;letter-spacing:.08em;
+    text-transform:uppercase;margin:16px 0 7px;color:var(--ink-soft)}
+  p{font-size:13.5px;line-height:1.6;margin:0 0 10px}
+  ul{margin:0 0 10px;padding-left:19px;font-size:13.5px;line-height:1.6}
+  li{margin-bottom:5px}
+  code{font-family:var(--mono);font-size:12px;background:#E7E9E2;
+    padding:1px 4px;border-radius:2px;border:1px solid var(--panel-edge)}
+  pre{background:var(--lcd);color:var(--lcd-text);border:1px solid #0B120E;
+    border-radius:3px;box-shadow:0 2px 5px rgba(0,0,0,.3) inset;
+    padding:11px;margin:0 0 10px;font-family:var(--mono);font-size:11.5px;
+    line-height:1.65;overflow-x:auto;-webkit-overflow-scrolling:touch}
+  pre .c{color:var(--lcd-dim)}
+  table{width:100%;border-collapse:collapse;font-size:12.5px;margin:0 0 10px}
+  th{font-family:var(--display);font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+    text-align:left;padding:6px 7px;border-bottom:1.5px solid var(--ink);color:var(--ink-soft)}
+  td{padding:6px 7px;border-bottom:1px solid var(--panel-edge);
+    font-family:var(--mono);font-size:11.5px}
+  td.t{font-family:var(--body);font-size:12.5px}
+  .flag{border-left:3px solid var(--amber);background:#E5E3D8;
+    padding:9px 11px;margin:0 0 10px;font-size:12.5px;line-height:1.55}
+  .flag.go{border-left-color:var(--green)}
+  .flag.stop{border-left-color:var(--red)}
+  .flag b{font-weight:600}
+  footer{padding:14px 16px;border-top:1px solid var(--panel-edge);
+    background:var(--panel-deep);font-size:11.5px;line-height:1.6;color:var(--ink-soft)}
+</style>
+</head>
+<body>
+<div class="unit">
+
+<header>
+  <p class="marque">Reverse engineering notes &middot; 29 Aug 2026 &middot; rev 4</p>
+  <h1>RayNeo Air 4 Pro<br>USB Protocol</h1>
+  <p class="sub">What was established in one session on Android, with no vendor SDK, no root, and no Windows machine. Enough to pick this back up cold.</p>
+</header>
+
+<div class="facts">
+  <div class="fact"><b>0x1BBB</b><span>Vendor (TCL)</span></div>
+  <div class="fact"><b>0xAF50</b><span>Product</span></div>
+  <div class="fact"><b>HID</b><span>Class</span></div>
+  <div class="fact"><b>0xFF00</b><span>Usage page</span></div>
+  <div class="fact"><b>0x81</b><span>Interrupt IN</span></div>
+  <div class="fact"><b>0x01</b><span>Interrupt OUT</span></div>
+  <div class="fact"><b>64 B</b><span>Report size</span></div>
+  <div class="fact"><b>0</b><span>Report IDs</span></div>
+</div>
+
+<main>
+
+<section>
+  <div class="hd"><span class="no">01</span><h2>The headline</h2></div>
+  <p>Chrome's WebUSB refuses this device outright — <code>protected class</code>, because it's HID. That refusal is a browser policy, not an Android limitation. Termux with a wrapped file descriptor claims interface 0 without trouble.</p>
+  <div class="flag go"><b>Confirmed working:</b> three-axis accelerometer readings over USB on Android, no root, no vendor SDK. Gravity magnitude measured 9.73–9.77 against a true 9.81.</div>
+  <div class="flag go"><b>Sensor work complete.</b> Frame decoded, accelerometer verified, all three head axes recoverable from the gyro, and the device answers at 118 Hz. Enough to build a tracker on.</div>
+</section>
+
+<section>
+  <div class="hd"><span class="no">02</span><h2>Descriptor</h2></div>
+  <p>34 bytes, read via standard <code>GET_DESCRIPTOR</code> (type 0x22):</p>
+<pre>06 00 FF  09 01  A1 01
+  09 02  15 00  26 FF 00  75 08  95 40  81 02   <span class="c">; Input,  64 bytes</span>
+  09 03  15 00  26 FF 00  75 08  95 40  91 02   <span class="c">; Output, 64 bytes</span>
+C0</pre>
+  <p>A bare vendor pipe. No sensor usages, no report IDs, no feature reports declared. Nothing here hints at what the device does — the whole protocol is private.</p>
+</section>
+
+<section>
+  <div class="hd"><span class="no">03</span><h2>How to talk to it</h2></div>
+  <p>This is the key finding of the session, and it isn't obvious.</p>
+  <ul>
+    <li><b>Commands go out on the control pipe</b> as a HID <code>SET_REPORT</code>, not to the interrupt OUT endpoint. The same payload sent to endpoint 0x01 gets no reply at all.</li>
+    <li><b>Replies come back on interrupt IN 0x81.</b></li>
+    <li><b>Nothing is ever pushed.</b> Passive listening returns zero frames forever. This wasted the first hour — the device only speaks when spoken to.</li>
+  </ul>
+<pre><span class="c">; control transfer</span>
+bmRequestType 0x21   <span class="c">; host to device, class, interface</span>
+bRequest      0x09   <span class="c">; SET_REPORT</span>
+wValue        0x0301 <span class="c">; feature report, id 1</span>
+wIndex        0x0000 <span class="c">; interface 0</span>
+payload       2 bytes</pre>
+  <p>Polling at 20/s gave 599 replies in 30 seconds — a 100% response rate. It is completely reliable once you ask correctly.</p>
+</section>
+
+<section>
+  <div class="hd"><span class="no">04</span><h2>Two frame types</h2></div>
+  <p>Every reply is 64 bytes starting <code>99</code>. Byte 1 is the type, byte 2 is <code>0x40</code> = 64 = the length.</p>
+
+  <h3>Type 0xC8 — status</h3>
+<pre>99 C8 40 00 | 12 23 48 00 | 00 19 00 32 13 51 35 33 ...
+             <span class="c">^ clock, LE</span>   <span class="c">^ constant</span></pre>
+  <p>Clock in bytes 4–6 advances 1500 units per 50 ms poll. Everything after is frozen — likely firmware or model identifiers. Returned by <code>01 66</code> and friends.</p>
+
+<pre>99 65 40 00 | 36 3E 1D 41 | 5C 25 80 3F | 2F E6 03 3F | 00 F5 3E 3C | 40 B4 71 3D | 78 A5 CC 3D | 00 08 E4 41
+   header    |   accel X   |   accel Y   |   accel Z   |   gyro X    |   gyro Y    |   gyro Z    | temperature
+                  9.8277        1.0011        0.5152        0.0117        0.0590        0.0999        28.50
+                        <span class="c">^ seven float32, little-endian, from offset 4</span>
+  <div class="flag go"><b>Offset 4, not 8.</b> There is no clock in the 0x65 frame &mdash; that only appears in 0xC8 status frames. Reading from offset 8 gives a plausible-looking gravity answer when the glasses lie flat, because accel X is near zero there. On the left side the two readings separate hard: offset 4 gives 9.89, offset 8 gives 1.12.</div>
+</section>
+
+<section>
+  <div class="hd"><span class="no">05</span><h2>Decoded samples</h2></div>
+  <p>Five captured frames, first three channels, taken while the glasses were being moved:</p>
+  <table>
+    <tr><th>ch0</th><th>ch1</th><th>ch2</th><th>magnitude</th></tr>
+    <tr><td>8.42</td><td>5.24</td><td>&minus;3.01</td><td>10.36</td></tr>
+    <tr><td>8.45</td><td>5.31</td><td>&minus;3.82</td><td>10.68</td></tr>
+    <tr><td>8.27</td><td>5.36</td><td>2.27</td><td>10.11</td></tr>
+    <tr><td>7.95</td><td>5.30</td><td>4.06</td><td>10.38</td></tr>
+    <tr><td>8.17</td><td>5.52</td><td>1.19</td><td>9.93</td></tr>
+  </table>
+  <p>Magnitudes cluster just above 9.81 — correct for an accelerometer in m/s² being carried about. A separate still capture gave 9.77.</p>
+
+  <h3>Channel map, measured</h3>
+  <table>
+    <tr><th>ch</th><th>reading</th><th>likely</th></tr>
+    <tr><td>off 4</td><td class="t">accel X</td><td class="t">m/s&sup2;, sign-verified</td></tr>
+    <tr><td>off 8</td><td class="t">accel Y</td><td class="t">m/s&sup2;</td></tr>
+    <tr><td>off 12</td><td class="t">accel Z</td><td class="t">m/s&sup2;</td></tr>
+    <tr><td>off 16</td><td class="t">gyro X</td><td class="t">&lt;0.1 at rest</td></tr>
+    <tr><td>off 20</td><td class="t">gyro Y</td><td class="t">&lt;0.1 at rest</td></tr>
+    <tr><td>off 24</td><td class="t">gyro Z</td><td class="t">&lt;0.1 at rest</td></tr>
+    <tr><td>off 28</td><td class="t">temperature</td><td class="t">&deg;C</td></tr>
+  </table>
+  <h3>Four held positions, hands off</h3>
+  <table>
+    <tr><th>position</th><th>ch0</th><th>ch1</th><th>|v|</th><th>angle</th></tr>
+    <tr><td class="t">flat, lenses down</td><td>8.24</td><td>5.29</td><td>9.80</td><td>33°</td></tr>
+    <tr><td class="t">nose down</td><td>−3.84</td><td>9.06</td><td>9.97</td><td>113°</td></tr>
+    <tr><td class="t">flat again</td><td>7.63</td><td>6.11</td><td>9.77</td><td>39°</td></tr>
+    <tr><td class="t">flat, lenses up</td><td>−8.10</td><td>−5.38</td><td>9.73</td><td>214°</td></tr>
+  </table>
+  <div class="flag go"><b>The decisive test.</b> Inverting the glasses flipped both channels’ signs with residuals of 0.14 and −0.09, and rotated the vector 181° for a 180° physical flip. Nothing but a real accelerometer does that.</div>
+</section>
+
+<section>
+  <div class="hd"><span class="no">5b</span><h2>Head axis map</h2></div>
+  <p>Measured one movement at a time, 8 seconds each, several hundred samples per run.</p>
+  <table>
+    <tr><th>movement</th><th>gyro signature</th></tr>
+    <tr><td>pitch &mdash; nodding</td><td>X alone (off 16), &plusmn;60 while Y and Z stay under 7</td></tr>
+    <tr><td>yaw &mdash; left / right</td><td>Y large (&plusmn;118), Z <b>same sign</b> at ~28%</td></tr>
+    <tr><td>roll &mdash; ear to shoulder</td><td>Y and Z <b>opposite signs</b>, similar size</td></tr>
+    <tr><td>still</td><td>all three under 2.5</td></tr>
+  </table>
+  <div class="flag go"><b>No calibration matrix needed.</b> Y and Z are a rotated pair, so a sum and a difference recover both axes.</div>
+<pre>pitch = gyroX
+yaw   = gyroY + gyroZ
+roll  = gyroY - gyroZ</pre>
+  <p>Across ten yaw samples Y and Z shared sign 10/10, mean Z/Y ratio 0.28 &mdash; an IMU sitting about <b>15&deg;</b> off square, as you would expect inside a temple arm.</p>
+</section>
+
+<section>
+  <div class="hd"><span class="no">06</span><h2>Getting sensor mode</h2></div>
+  <div class="flag"><b>Sensor mode is not persistent.</b> A fresh process gets type 0xC8 status frames. Something in a full sweep flips it into emitting type 0x65, and it reverts when the process exits.</div>
+  <p>What reliably worked: sweep <code>XX 01</code> for XX across 00–FF, three sends each, ~40 ms read window. Sweeping <code>01 XX</code> instead does <em>not</em> do it — that cost half an hour of confusion.</p>
+  <div class="flag go"><b>The enable is <code>00 01</code>.</b> The very first command in the sweep. One SET_REPORT of <code>00 01</code> flips the device into type-0x65 mode — no sweep needed, wake is instant.</div>
+  <p>Sensor mode still ends when the process does, so send it once at startup every session.</p>
+</section>
+
+<section>
+  <div class="hd"><span class="no">07</span><h2>Environment</h2></div>
+  <ul>
+    <li>Termux and Termux:API <b>both from GitHub</b>. Play Store builds have a signature mismatch that breaks <code>termux-api</code> installs.</li>
+    <li><code>pkg install python libusb termux-api</code></li>
+    <li>libusb needs <code>LIBUSB_OPTION_NO_DEVICE_DISCOVERY</code> (value 2) before <code>libusb_init</code>, then <code>libusb_wrap_sys_device</code> on the descriptor. Android can't enumerate.</li>
+    <li><code>libusb_set_auto_detach_kernel_driver</code> then <code>claim_interface(0)</code> — works, no root.</li>
+  </ul>
+<pre>termux-usb -l
+termux-usb -r -e "python -u SCRIPT.py" /dev/bus/usb/001/002</pre>
+  <div class="flag"><b>Argument order:</b> termux-usb <b>appends</b> the descriptor after your own flags. Scripts must scan the argument list for the number rather than assume it's first.</div>
+</section>
+
+<section>
+  <div class="hd"><span class="no">08</span><h2>The scripts</h2></div>
+  <table>
+    <tr><th>file</th><th>does</th></tr>
+    <tr><td>rayneo_dump.py</td><td class="t">Raw interrupt listener. Historical — proves nothing is pushed.</td></tr>
+    <tr><td>rayneo_ctrl.py</td><td class="t">Reads the report descriptor, sweeps GET_REPORT, tries SET_REPORT enables. Found the channel.</td></tr>
+    <tr><td>rayneo_poll.py</td><td class="t">Polls one command repeatedly; <code>--sweep</code> maps command bytes.</td></tr>
+    <tr><td>rayneo_live.py</td><td class="t">Live scrolling hex with clock bytes masked out.</td></tr>
+    <tr><td>rayneo_map.py</td><td class="t">Compares every command's reply against a baseline with the clock masked.</td></tr>
+    <tr><td>rayneo_decode.py</td><td class="t">Float decode, both alignments side by side.</td></tr>
+    <tr><td>rayneo_track2.py</td><td class="t">Wakes sensor mode, then guided or <code>--free</code> sampling.</td></tr>
+    <tr><td>rayneo_axes.py</td><td class="t"><b>Current best.</b> Instant wake, one held position per run, averages plus the gravity magnitude check. Use <code>--n 14 --quiet</code>.</td></tr>
+  </table>
+</section>
+
+<section>
+  <div class="hd"><span class="no">09</span><h2>Where to pick up</h2></div>
+  <ul>
+    <li><b>Build the tracker.</b> Integrate yaw over time, add a dead-zone for drift, then smooth. The sensor side is done.</li>
+    <li>Confirm the yaw sign convention: which direction of turn gives a positive Y+Z.</li>
+    <li>Add recentre, dead-zone and smoothing once the axes are known.</li>
+    <li>For head-look in games: Shadow runs Windows, so head-to-mouse would work there. The obstacle is injecting <i>relative</i> mouse motion on Android, which normally needs root &mdash; check that before building toward it.</li>
+    <li>Only after all that does a fused orientation — and anything drawing a screen — become worth attempting.</li>
+  </ul>
+  <div class="flag stop"><b>Scope reminder.</b> Even fully decoded, this yields a head-tracked floating screen. Head-look inside a game needs the game to accept an orientation input, which no Android title or emulator does. That part is Windows-only, and Mario Kart is out on every platform.</div>
+</section>
+
+</main>
+
+<footer>
+  Everything here was measured on one device in one session. The vendor could change any of it in a firmware update. Treat the frame layout as observed behaviour, not documentation.
+</footer>
+
+</div>
+</body>
+</html>

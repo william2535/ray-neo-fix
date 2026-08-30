@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>RayNeo Head Tracking — Handover</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;700&family=IBM+Plex+Mono:wght@400;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --panel:#DCDFD6; --panel-deep:#C6CABE; --panel-edge:#A9AEA1;
+    --ink:#1A1D19; --ink-soft:#565C52;
+    --lcd:#16241C; --lcd-text:#7FE8A8; --lcd-dim:#3E7A57;
+    --amber:#E8A33D; --red:#D14432; --green:#3FBF6A;
+    --display:"Barlow Condensed",Impact,sans-serif;
+    --body:"Inter",system-ui,sans-serif;
+    --mono:"IBM Plex Mono",ui-monospace,monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{background:var(--panel-edge);font-family:var(--body);color:var(--ink);
+    -webkit-font-smoothing:antialiased;padding:14px;
+    padding-bottom:calc(28px + env(safe-area-inset-bottom))}
+  .unit{max-width:700px;margin:0 auto;background:var(--panel);
+    border:1px solid var(--panel-edge);border-radius:4px;
+    box-shadow:0 1px 0 #EDEFE9 inset,0 6px 20px rgba(0,0,0,.18);overflow:hidden}
+  header{padding:18px;border-bottom:2px solid var(--ink);
+    background:linear-gradient(180deg,#E4E7DE,#D5D8CF)}
+  .marque{font-family:var(--display);font-weight:700;font-size:11px;
+    letter-spacing:.22em;text-transform:uppercase;color:var(--ink-soft);margin:0 0 5px}
+  h1{font-family:var(--display);font-weight:700;font-size:33px;line-height:1;
+    text-transform:uppercase;margin:0}
+  .sub{font-size:12.5px;line-height:1.55;color:var(--ink-soft);margin:9px 0 0;max-width:50ch}
+  .state{display:flex;flex-wrap:wrap;background:var(--panel-deep);
+    border-bottom:1px solid var(--panel-edge)}
+  .s{flex:1 1 50%;padding:9px 11px;border-right:1px solid var(--panel-edge);
+    border-bottom:1px solid var(--panel-edge);display:flex;align-items:center;gap:8px;
+    font-size:12.5px}
+  .dot{width:9px;height:9px;border-radius:50%;flex:0 0 9px;
+    box-shadow:0 0 0 1px rgba(0,0,0,.2) inset}
+  .ok .dot{background:var(--green)} .part .dot{background:var(--amber)}
+  .no .dot{background:var(--red)}
+  main{padding:17px}
+  section{margin:0 0 22px;padding:0 0 22px;border-bottom:1px solid var(--panel-edge)}
+  section:last-child{border-bottom:0;margin-bottom:0;padding-bottom:0}
+  .hd{display:flex;align-items:baseline;gap:9px;margin:0 0 10px}
+  .no2{font-family:var(--mono);font-weight:600;font-size:11px;color:var(--ink-soft);
+    border:1px solid var(--panel-edge);padding:2px 5px;border-radius:2px;background:#E7E9E2}
+  h2{font-family:var(--display);font-weight:700;font-size:20px;
+    text-transform:uppercase;letter-spacing:.05em;margin:0}
+  h3{font-family:var(--display);font-weight:700;font-size:13.5px;letter-spacing:.09em;
+    text-transform:uppercase;margin:17px 0 7px;color:var(--ink-soft)}
+  p{font-size:13.5px;line-height:1.6;margin:0 0 10px}
+  ul,ol{margin:0 0 10px;padding-left:19px;font-size:13.5px;line-height:1.6}
+  li{margin-bottom:5px}
+  code{font-family:var(--mono);font-size:12px;background:#E7E9E2;
+    padding:1px 4px;border-radius:2px;border:1px solid var(--panel-edge)}
+  pre{background:var(--lcd);color:var(--lcd-text);border:1px solid #0B120E;
+    border-radius:3px;box-shadow:0 2px 5px rgba(0,0,0,.3) inset;
+    padding:11px;margin:0 0 10px;font-family:var(--mono);font-size:11.5px;
+    line-height:1.65;overflow-x:auto;-webkit-overflow-scrolling:touch}
+  pre .c{color:var(--lcd-dim)}
+  table{width:100%;border-collapse:collapse;font-size:12.5px;margin:0 0 10px}
+  th{font-family:var(--display);font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+    text-align:left;padding:6px 7px;border-bottom:1.5px solid var(--ink);color:var(--ink-soft)}
+  td{padding:6px 7px;border-bottom:1px solid var(--panel-edge);font-size:12.5px}
+  td.m{font-family:var(--mono);font-size:11.5px}
+  .flag{border-left:3px solid var(--amber);background:#E5E3D8;
+    padding:9px 11px;margin:0 0 10px;font-size:12.5px;line-height:1.55}
+  .flag.go{border-left-color:var(--green)}
+  .flag.stop{border-left-color:var(--red)}
+  .flag b{font-weight:600}
+  footer{padding:14px 17px;border-top:2px solid var(--ink);background:var(--panel-deep);
+    font-size:11.5px;line-height:1.6;color:var(--ink-soft)}
+</style>
+</head>
+<body>
+<div class="unit">
+
+<header>
+  <p class="marque">Handover &middot; 30 August 2026 &middot; Will Flood</p>
+  <h1>Where This<br>Got To</h1>
+  <p class="sub">Working head tracking on Android, and what to do next on a PC. Everything needed to pick this up cold is in this document and the archive beside it.</p>
+</header>
+
+<div class="state">
+  <div class="s ok"><span class="dot"></span><b>USB access</b>&nbsp;working</div>
+  <div class="s ok"><span class="dot"></span><b>Protocol</b>&nbsp;decoded</div>
+  <div class="s ok"><span class="dot"></span><b>Frame layout</b>&nbsp;confirmed</div>
+  <div class="s ok"><span class="dot"></span><b>Head axes</b>&nbsp;mapped</div>
+  <div class="s ok"><span class="dot"></span><b>Tracker</b>&nbsp;built &amp; tuned</div>
+  <div class="s ok"><span class="dot"></span><b>Mouse output</b>&nbsp;working, no root</div>
+  <div class="s part"><span class="dot"></span><b>Home screen</b>&nbsp;launcher blocks widgets</div>
+  <div class="s no"><span class="dot"></span><b>Real APK</b>&nbsp;not started</div>
+</div>
+
+<main>
+
+<section>
+  <div class="hd"><span class="no2">01</span><h2>It works today</h2></div>
+  <p>On the handheld, right now:</p>
+<pre>termux-usb -r -e "python -u rayneo_head.py --mode mouse --sens 25" \
+  /dev/bus/usb/001/002</pre>
+  <p>Head motion drives the system cursor. Two seconds of calibration at startup, then live. Keys while running: <code>m</code> mouse, <code>s</code> screen, <code>r</code> recentre, <code>c</code> recalibrate, <code>q</code> quit.</p>
+  <p>Shortcuts exist at <code>~/.shortcuts/</code> and the launcher auto-detects the USB path, so replugging does not break them. The only unfinished bit on Android is getting an icon onto the Cocoon home screen &mdash; Cocoon appears not to accept Termux widgets.</p>
+  <div class="flag"><b>Before the APK, try this:</b> long-press the Termux:Widget icon in the app drawer. Shortcuts and widgets are different Android mechanisms, and Cocoon may allow one but not the other.</div>
+</section>
+
+<section>
+  <div class="hd"><span class="no2">02</span><h2>Everything proven</h2></div>
+  <p>Do not re-derive any of this. All measured, all verified.</p>
+  <table>
+    <tr><th>fact</th><th>value</th></tr>
+    <tr><td>Device</td><td class="m">VID 0x1BBB, PID 0xAF50, HID, usage page 0xFF00</td></tr>
+    <tr><td>Enable</td><td class="m">SET_REPORT payload 00 01 (any XX 01 works)</td></tr>
+    <tr><td>Control transfer</td><td class="m">0x21, 0x09, wValue 0x0301, wIndex 0</td></tr>
+    <tr><td>Replies</td><td class="m">interrupt IN 0x81, 64 bytes</td></tr>
+    <tr><td>Sensor frame</td><td class="m">99 65 40 00, then 7 float32 LE from offset 4</td></tr>
+    <tr><td>Fields</td><td class="m">accel XYZ, gyro XYZ, temperature &deg;C</td></tr>
+    <tr><td>Head axes</td><td class="m">pitch=gyroX, yaw=gyroY+gyroZ, roll=gyroY&minus;gyroZ</td></tr>
+    <tr><td>Rate</td><td class="m">118 Hz with no sleep in the poll loop</td></tr>
+    <tr><td>Noise floor</td><td class="m">under 2.5 &deg;/s when still &rarr; deadzone 2.0</td></tr>
+    <tr><td>Nothing is pushed</td><td class="m">poll or you get silence, forever</td></tr>
+    <tr><td>/dev/uinput</td><td class="m">mode 666 on this handheld, no root needed</td></tr>
+  </table>
+  <div class="flag stop"><b>The trap that cost the most time:</b> floats start at <b>offset 4</b>, not 8. Reading from 8 still looks like gravity when the glasses lie flat, because accel X is near zero there. It only falls apart on the left side.</div>
+</section>
+
+<section>
+  <div class="hd"><span class="no2">03</span><h2>The archive</h2></div>
+  <p><code>RayNeo-HeadTracking.zip</code> holds everything. Copy it to the PC.</p>
+  <table>
+    <tr><th>folder</th><th>contents</th></tr>
+    <tr><td class="m">app/</td><td>The working tool: <code>rayneo_head.py</code>, <code>uinput_mouse.py</code>, <code>rayneo_setup.py</code>, <code>rayneo_tracker.py</code></td></tr>
+    <tr><td class="m">tools/</td><td>The eleven investigation scripts, in the order they were used</td></tr>
+    <tr><td class="m">docs/</td><td>Protocol notes, project record, run sheets</td></tr>
+  </table>
+  <p>The two files that matter are <code>app/rayneo_head.py</code> and <code>app/uinput_mouse.py</code>. Everything else is either history or a diagnostic.</p>
+</section>
+
+<section>
+  <div class="hd"><span class="no2">04</span><h2>On the PC: the APK</h2></div>
+  <p>This is the next real step, and it needs a desktop.</p>
+
+  <h3>What to install</h3>
+  <ul>
+    <li><b>Android Studio</b> &mdash; free, developer.android.com/studio. Large download, ~1 hour with the SDK.</li>
+    <li>No phone connection needed to build. You produce an APK and copy it across.</li>
+  </ul>
+
+  <h3>What the app has to do</h3>
+  <ol>
+    <li><b>USB permission</b> &mdash; <code>UsbManager</code>, request access to VID 0x1BBB / PID 0xAF50. An intent filter can auto-launch when the glasses are plugged in.</li>
+    <li><b>Claim the interface</b> &mdash; <code>openDevice()</code>, then <code>claimInterface(intf, true)</code>. The <code>true</code> force-detaches the kernel HID driver. This is what Termux does under the hood.</li>
+    <li><b>Send the enable</b> &mdash; <code>controlTransfer(0x21, 0x09, 0x0301, 0, byteArrayOf(0x00, 0x01), 2, 600)</code></li>
+    <li><b>Poll</b> &mdash; <code>bulkTransfer</code> on endpoint 0x81, 64 bytes, in a background thread.</li>
+    <li><b>Decode</b> &mdash; <code>ByteBuffer.order(LITTLE_ENDIAN).getFloat(4)</code> and on in fours.</li>
+    <li><b>Port the tracker</b> &mdash; the <code>Tracker</code> class in <code>rayneo_head.py</code> translates to Kotlin almost line for line. Keep the sub-pixel carry.</li>
+    <li><b>Output</b> &mdash; uinput from Kotlin needs NDK/JNI. Simplest first version: keep the Python mouse and have the app talk to it, or ship screen mode only and add mouse later.</li>
+  </ol>
+
+  <div class="flag"><b>Suggested order.</b> Get a screen showing live pitch/yaw/roll numbers first. That proves USB, decode and tracker all work inside a real app. The UI and the mouse output come after.</div>
+
+  <h3>What the UI needs</h3>
+  <ul>
+    <li>Mouse / screen toggle</li>
+    <li>Sensitivity slider, 5 to 50</li>
+    <li>Recentre and recalibrate buttons</li>
+    <li>Invert X and invert Y switches</li>
+    <li>A live readout, useful for confirming it is alive</li>
+  </ul>
+</section>
+
+<section>
+  <div class="hd"><span class="no2">05</span><h2>Other things worth doing</h2></div>
+  <ul>
+    <li><b>Publish it.</b> GitHub, your name, MIT or Apache-2.0 licence. A dated public repository is what establishes you did this first.</li>
+    <li><b>Confirm the yaw sign convention</b> &mdash; which direction of turn gives a positive Y+Z. Never formally checked; the invert flags paper over it.</li>
+    <li><b>Try it in an actual game over Shadow.</b> The mouse is a real input device, so a streamed Windows game should accept it. Untested.</li>
+    <li><b>Check ch6/ch7 for a magnetometer.</b> Values swung with orientation but were never isolated. A magnetometer would give absolute heading and kill yaw drift entirely.</li>
+    <li><b>Test on a second pair</b> if you ever get the chance &mdash; the 15&deg; mount offset may be unit-specific.</li>
+  </ul>
+</section>
+
+<section>
+  <div class="hd"><span class="no2">06</span><h2>If something breaks</h2></div>
+  <table>
+    <tr><th>symptom</th><th>cause</th></tr>
+    <tr><td class="m">termux-usb -l hangs</td><td>Termux:API service killed. Exit Termux from the notification shade, or reboot.</td></tr>
+    <tr><td class="m">empty [] from -l</td><td>Glasses still enumerating. Run it again.</td></tr>
+    <tr><td class="m">"no sensor frames"</td><td>Enable needs a few attempts. Unplug, wait 3s, replug.</td></tr>
+    <tr><td class="m">claim fails, busy</td><td>A previous run still holds it. <code>pkill -f python</code>, then replug.</td></tr>
+    <tr><td class="m">cursor creeps when still</td><td>Raise <code>deadzone</code> in <code>~/.rayneo.conf</code>.</td></tr>
+    <tr><td class="m">jittery at high sens</td><td>Raise <code>smooth</code> to 0.5&ndash;0.6 rather than dropping sensitivity.</td></tr>
+    <tr><td class="m">slow turns do nothing</td><td>Sub-pixel carry has been lost in an edit. It is essential.</td></tr>
+  </table>
+  <div class="flag stop"><b>Two habits that saved a lot of time.</b> Type commands rather than pasting &mdash; pasting injected stray characters and broke several scripts. And check the gravity magnitude before believing any sample: near 9.8 means the glasses were genuinely still.</div>
+</section>
+
+</main>
+
+<footer>
+  <b>Will Flood, 30 August 2026.</b> Work carried out 29&ndash;30 August on an Android handheld with the glasses in hand. Every figure quoted here was measured, not assumed. Not affiliated with RayNeo or TCL.
+</footer>
+
+</div>
+</body>
+</html>
