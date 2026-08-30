@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout source
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Set up Java 17
@@ -34,25 +34,181 @@ jobs:
         shell: bash
         run: |
           yes | sdkmanager --licenses >/dev/null || true
-          sdkmanager \
-            "platforms;android-35" \
-            "build-tools;35.0.0" \
-            "cmake;3.22.1" \
-            "ndk;27.2.12479018"
+          sdkmanager "platforms;android-35" "build-tools;35.0.0" "cmake;3.22.1" "ndk;27.2.12479018"
+
+      - name: Recreate RayNeo Android project
+        shell: bash
+        run: |
+          rm -rf rayneo-project
+          mkdir -p rayneo-project
+          cat > /tmp/rayneo-project.b64 <<'RAYNEO_PAYLOAD'
+          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
+          RAYNEO_PAYLOAD
+
+          base64 -d /tmp/rayneo-project.b64 | tar -xz -C rayneo-project
 
       - name: Build debug APK
-        working-directory: RayNeo-HeadTracking-Android-Upload
-        run: gradle :app:assembleDebug --stacktrace
+        shell: bash
+        run: |
+          gradle -p rayneo-project :app:assembleDebug --stacktrace
 
-      - name: Prepare APK artifact
+      - name: Prepare APK
         shell: bash
         run: |
           mkdir -p output
-          cp RayNeo-HeadTracking-Android-Upload/app/build/outputs/apk/debug/app-debug.apk output/RayNeo-Head-Tracker-debug.apk
+          cp rayneo-project/app/build/outputs/apk/debug/app-debug.apk \
+            output/RayNeo-Head-Tracker-debug.apk
 
-      - name: Upload installable APK
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: RayNeo-Head-Tracker-APK
           path: output/RayNeo-Head-Tracker-debug.apk
-          if-no-files-found: error
+          if-no-files-found: errorl9mYDa3GuPFpk+6KswU/fC4f4kP16HG2x1VVCmtzkDRHjhw5cuTIkSNHjhw5cuTIkSNHjhw5cuTI
+
+kSNHjhw5cuTIkSNHjhw5cvQPp/8D1LAhsADIAAA=
