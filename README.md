@@ -5,7 +5,7 @@ An experimental open-source Android project that unlocks direct IMU head trackin
 
 > **Current release: v0.8 Beta**
 >
-> **Latest lab build · v0.9.12** brings Start, Recentre and Spatial Desktop to the top of setup, saves mouse tuning, and reduces redraws while using other apps. [Download the debug APK from the latest successful build](https://github.com/william2535/ray-neo-fix/actions/workflows/build-apk.yml). Open the run and select **RayNeo-Head-Tracker-APK** under **Artifacts**.
+> **Latest lab build · v0.9.13** uses gravity to correct vertical screen drift and adds a 60-second on-device drift check. [Tracking design and test results](docs/spatial-tracking.md) · [APK builds](https://github.com/william2535/ray-neo-fix/actions/workflows/build-apk.yml)
 >
 > This is an independent community project and is not affiliated with or endorsed by RayNeo/TCL.
 

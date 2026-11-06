@@ -46,6 +46,9 @@ jobs:
           distribution: temurin
           java-version: '17'
 
+      - name: Replay IMU traces and verify mouse response
+        run: sh "$PROJECT_DIR/tests/run.sh"
+
       - name: Set up Gradle 8.9
         uses: gradle/actions/setup-gradle@v4
         with:
